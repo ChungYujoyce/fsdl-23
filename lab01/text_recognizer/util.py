@@ -14,7 +14,7 @@ from tqdm import tqdm
 def to_categorical(y, num_classes):
     return np.eye(num_classes, dtype = "uint8")[y]
 
-def read_image(image_url, Union[Path, str], grayscale=False) -> np.array:
+def read_image(image_url: Union[Path, str], grayscale=False) -> np.array:
     def read_image_from_filename(image_filename, imread_flag):
         return cv2.imread(str(image_filename), imread_flag)
 

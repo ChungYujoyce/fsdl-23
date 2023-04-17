@@ -11,7 +11,7 @@ FC2_DIM = 128
 
 class MLP(nn.Module):
     def __init__(self, data_config: Dict[str, Any], args: argparse.Namespace = None) -> None:
-        super.__init__()
+        super().__init__()
         self.args = vars(args) if args is not None else {}
         
         input_dim = np.prod(data_config["input_dims"])

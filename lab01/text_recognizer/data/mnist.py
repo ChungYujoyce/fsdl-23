@@ -9,7 +9,7 @@ from text_recognizer.data.base_data_module import BaseDataModule, load_and_print
 DOWNLOADED_DATA_DIRNAME = BaseDataModule.data_dirname() / "downloaded"
 
 class MNIST(BaseDataModule):
-     def __init__(self, args: argparse.Namespace) -> None:
+    def __init__(self, args: argparse.Namespace) -> None:
         super().__init__(args)
         self.data_dir = DOWNLOADED_DATA_DIRNAME
         self.transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])

@@ -19,7 +19,7 @@ def load_and_print_info(data_module_class: type) -> None:
     print(dataset)
 
 
-def _download_raw_dataset(metadata: Dict, dl_dirname: Path) -. Path: # func for internal use
+def _download_raw_dataset(metadata: Dict, dl_dirname: Path) -> Path: # func for internal use
     dl_dirname.mkdir(parents = True, exist_ok = True)
     filename = dl_dirname / metadata["filename"]
     if filename.exists():
@@ -32,7 +32,7 @@ def _download_raw_dataset(metadata: Dict, dl_dirname: Path) -. Path: # func for 
         raise ValueError("Downloaded data file SHA-256 does not match that listed in metadata document.")
     return filename
 
-BATH_SIZE = 128
+BATCH_SIZE = 128
 NUM_WORKERS = 0
 
 class BaseDataModule(pl.LightningModule):

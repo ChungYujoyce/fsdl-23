@@ -39,7 +39,7 @@ class BaseLitModel(pl.LightningModule):
         x, y = batch
         logprobs = self(x)
         loss = self.loss_fn(logprobs, y)
-        self.log("val_loss", loss)
+        self.log("val_loss", loss, prog_bar=True)
         self.val_acc(logprobs, y)
         self.log("val_acc", self.val_acc, on_step = False, on_epoch = True, prog_bar = True)
 

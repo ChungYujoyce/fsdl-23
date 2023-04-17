@@ -7,8 +7,8 @@ import pytorch_lightning as pl
 
 from text_recognizer import lit_models
 
-np.random.seed(65)
-torch.manual_seed(65)
+np.random.seed(42)
+torch.manual_seed(42)
 
 def _import_class(module_and_class_name: str) -> type:
     """1 argument specifies that only one split should be made, starting from the right end of the string."""
@@ -22,7 +22,7 @@ def _setup_parser():
 
     trainer_parser = pl.Trainer.add_argparse_args(parser)
     trainer_parser._action_groups[1].title = "Trainer Args"
-    parser = argsparse.ArgumentParser(add_help=False, parents=[trainer_parser])
+    parser = argparse.ArgumentParser(add_help=False, parents=[trainer_parser])
     
     parser.add_argument("--data_class", type=str, default="MNIST")
     parser.add_argument("--model_class", type=str, default="MLP")
