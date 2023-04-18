@@ -1,4 +1,10 @@
 # Python
 __pycache__
-.pytest_cache
 .ipynb_checkpoints
+
+# Data
+data/downloaded
+
+#Misc
+logs
+.DS_Store
