@@ -1,4 +1,4 @@
-from typing import Any, Callable, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, Sequence, Tuple, Union
 import torch
 
 sequence_or_tensor = Union[Sequence, torch.Tensor]
@@ -12,6 +12,7 @@ class BaseDataset(torch.utils.data.Dataset):
 
         if len(data) != len(targets):
             raise ValueError("Data and targets must be of equal length")
+        super().__init__()
         self.data = data
         self.targets = targets
         self.transform = transform

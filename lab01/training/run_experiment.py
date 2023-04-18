@@ -55,8 +55,8 @@ def main():
     loggers = [pl.loggers.TensorBoardLogger("training/logs")]
 
     callbacks = [pl.callbacks.EarlyStopping(monitor = "val_loss", mode = "min", patience = 10)]
+    args.weights_summary = "full"
     trainer = pl.Trainer.from_argparse_args(args, callbacks = callbacks, logger = loggers, default_root_dir = "training/logs")
-
     trainer.tune(lit_model, datamodule = data)
     trainer.fit(lit_model, datamodule = data)
     trainer.test(lit_model, datamodule = data)
