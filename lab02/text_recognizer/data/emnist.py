@@ -12,10 +12,9 @@ from torchvision import transforms
 import h5py
 import numpy as np
 import toml
-import torch
 
 from text_recognizer.data.base_data_module import _download_raw_dataset, BaseDataModule, load_and_print_info
-from text_recognizer.data.util import BaseDataset
+from text_recognizer.data.util import BaseDataset, split_dataset
 
 NUM_SPECIAL_TOKENS = 4
 SAMPLE_TO_BALANCE = True  # If true, take at most the mean number of instances per class.
@@ -28,8 +27,16 @@ PROCESSED_DATA_DIRNAME = BaseDataModule.data_dirname() / "processed" / "emnist"
 PROCESSED_DATA_FILENAME = PROCESSED_DATA_DIRNAME / "byclass.h5"
 ESSENTIALS_FILENAME = Path(__file__).parents[0].resolve() / "emnist_essentials.json"
 
-
 class EMNIST(BaseDataModule):
+    """
+    "The EMNIST dataset is a set of handwritten character digits derived from the NIST Special Database 19
+    and converted to a 28x28 pixel image format and dataset structure that directly matches the MNIST dataset."
+    From https://www.nist.gov/itl/iad/image-group/emnist-dataset
+
+    The data split we will use is
+    EMNIST ByClass: 814,255 characters. 62 unbalanced classes.
+    """
+
     def __init__(self, args=None):
         super().__init__(args)
 
@@ -37,28 +44,26 @@ class EMNIST(BaseDataModule):
             _download_and_process_emnist()
         with open(ESSENTIALS_FILENAME) as f:
             essentials = json.load(f)
-            
         self.mapping = list(essentials["characters"])
         self.inverse_mapping = {v: k for k, v in enumerate(self.mapping)}
-        self.data_train = None
-        self.data_val = None
-        self.data_test = None
         self.transform = transforms.Compose([transforms.ToTensor()])
-        self.dims = (1, *essentials["input_shape"])  # (1, 28, 28)
+        self.dims = (1, *essentials["input_shape"])  # Extra dimension is added by ToTensor()
         self.output_dims = (1,)
 
-    def setup(self, stage: str = None):
+    def prepare_data(self, *args, **kwargs) -> None:
+        if not os.path.exists(PROCESSED_DATA_FILENAME):
+            _download_and_process_emnist()
+        with open(ESSENTIALS_FILENAME) as f:
+            _essentials = json.load(f)
+
+    def setup(self, stage: str = None) -> None:
         if stage == "fit" or stage is None:
             with h5py.File(PROCESSED_DATA_FILENAME, "r") as f:
                 self.x_trainval = f["x_train"][:]
                 self.y_trainval = f["y_train"][:].squeeze().astype(int)
 
             data_trainval = BaseDataset(self.x_trainval, self.y_trainval, transform=self.transform)
-            train_size = int(TRAIN_FRAC * len(data_trainval))
-            val_size = len(data_trainval) - train_size
-            self.data_train, self.data_val = torch.utils.data.random_split(
-                data_trainval, [train_size, val_size], generator=torch.Generator().manual_seed(42)
-            )
+            self.data_train, self.data_val = split_dataset(base_dataset=data_trainval, fraction=TRAIN_FRAC, seed=42)
 
         if stage == "test" or stage is None:
             with h5py.File(PROCESSED_DATA_FILENAME, "r") as f:
@@ -79,21 +84,23 @@ class EMNIST(BaseDataModule):
         )
         return basic + data
 
-
 def _download_and_process_emnist():
     metadata = toml.load(METADATA_FILENAME)
     _download_raw_dataset(metadata, DL_DATA_DIRNAME)
     _process_raw_dataset(metadata["filename"], DL_DATA_DIRNAME)
 
 def _process_raw_dataset(filename: str, dirname: Path):
+    print("Unzipping EMNIST...")
     curdir = os.getcwd()
     os.chdir(dirname)
     zip_file = zipfile.ZipFile(filename, "r")
     zip_file.extract("matlab/emnist-byclass.mat")
 
     from scipy.io import loadmat
+
     # NOTE: If importing at the top of module, would need to list scipy as prod dependency.
 
+    print("Loading training data from .mat file")
     data = loadmat("matlab/emnist-byclass.mat")
     x_train = data["dataset"]["train"][0, 0]["images"][0, 0].reshape(-1, 28, 28).swapaxes(1, 2)
     y_train = data["dataset"]["train"][0, 0]["labels"][0, 0] + NUM_SPECIAL_TOKENS
@@ -116,7 +123,7 @@ def _process_raw_dataset(filename: str, dirname: Path):
 
     print("Saving essential dataset parameters to text_recognizer/datasets...")
     mapping = {int(k): chr(v) for k, v in data["dataset"]["mapping"][0, 0]}
-    characters = _augment_emnist_characters(mapping.values())
+    characters = _augment_emnist_characters(list(mapping.values()))
     essentials = {"characters": characters, "input_shape": list(x_train.shape[1:])}
     with open(ESSENTIALS_FILENAME, "w") as f:
         json.dump(essentials, f)

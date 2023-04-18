@@ -1,4 +1,4 @@
-from typing import Any, Callable, Sequence, Tuple, Union
+from typing import Any, Callable, Sequence, Tuple, Union, Dict
 import torch
 
 sequence_or_tensor = Union[Sequence, torch.Tensor]
@@ -30,5 +30,13 @@ class BaseDataset(torch.utils.data.Dataset):
             target = self.target_transform(target)
 
         return datum, target
+
+def split_dataset(base_dataset: BaseDataset, fraction: float, seed: int) -> Tuple[BaseDataset, BaseDataset]:
+    split_a_size = int(fraction * len(base_dataset))
+    split_b_size = len(base_dataset) - split_a_size
+    return torch.utils.data.random_split(  # type: ignore
+        base_dataset, [split_a_size, split_b_size], generator=torch.Generator().manual_seed(seed)
+    )
+
 
 
