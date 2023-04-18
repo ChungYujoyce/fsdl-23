@@ -62,5 +62,5 @@ class BaseLitModel(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         logprobs = self(x)
-        self.test_acc(lobprobs, y)
+        self.test_acc(logprobs, y)
         self.log("test_acc", self.test_acc, on_step=False, on_epoch=True)
