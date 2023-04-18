@@ -35,7 +35,7 @@ def _download_raw_dataset(metadata: Dict, dl_dirname: Path) -> Path: # func for 
 BATCH_SIZE = 128
 NUM_WORKERS = 0
 
-class BaseDataModule(pl.LightningModule):
+class BaseDataModule(pl.LightningDataModule):
     def __init__(self, args: argparse.Namespace) -> None:
         super().__init__()
         self.args = vars(args) if args is not None else {}
