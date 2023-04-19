@@ -5,5 +5,6 @@ from .mnist import MNIST
 from .emnist import EMNIST
 from .emnist_lines import EMNISTLines
 
-
+from .emnist_lines2 import EMNISTLines2
+from .iam_lines import IAMLines
 
