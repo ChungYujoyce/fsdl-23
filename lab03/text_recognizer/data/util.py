@@ -1,4 +1,4 @@
-from typing import Any, Callable, Sequence, Tuple, Union
+from typing import Any, Callable, Sequence, Tuple, Union, Dict
 import torch
 
 sequence_or_tensor = Union[Sequence, torch.Tensor]

@@ -18,8 +18,10 @@ class Accuracy(pl.metrics.Accuracy):
         This method just hacks around it by normalizing preds before passing it in.
         Normalized preds are not necessary for accuracy computation as we just care about argmax().
         """
+        #import pdb
+        #pdb.set_trace()
         if preds.min() < 0 or preds.max() > 1:
-            preds = torch.nn.functional.softmax(preds, dim=-1)
+            preds = torch.nn.functional.softmax(preds.float(), dim=-1)
         super().update(preds=preds, target=target)
 
 class BaseLitModel(pl.LightningModule):
