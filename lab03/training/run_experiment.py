@@ -54,6 +54,8 @@ def main():
     
     if args.loss not in ("ctc", "transformer"):
         lit_model_class = lit_models.BaseLitModel
+    if args.loss == "ctc":
+        lit_model_class = lit_models.CTCLitModel
         
     if args.load_checkpoint is not None:
         lit_model = lit_model_class.load_from_checkpoint(args.load_checkpoint, args=args, model=model)
