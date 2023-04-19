@@ -12,6 +12,7 @@ from text_recognizer.data.util import BaseDataset
 from text_recognizer.data.base_data_module import BaseDataModule, load_and_print_info
 from text_recognizer.data.emnist import EMNIST
 
+
 DATA_DIRNAME = BaseDataModule.data_dirname() / "processed" / "emnist_lines"
 ESSENTIALS_FILENAME = Path(__file__).parents[0].resolve() / "emnist_lines_essentials.json"
 
@@ -22,10 +23,14 @@ NUM_TRAIN = 10000
 NUM_VAL = 2000
 NUM_TEST = 2000
 
+
 class EMNISTLines(BaseDataModule):
     """EMNIST Lines dataset: synthetic handwriting lines dataset made from EMNIST characters."""
 
-    def __init__(self, args: argparse.Namespace = None):
+    def __init__(
+        self,
+        args: argparse.Namespace = None,
+    ):
         super().__init__(args)
 
         self.max_length = self.args.get("max_length", MAX_LENGTH)
@@ -44,11 +49,8 @@ class EMNISTLines(BaseDataModule):
             self.emnist.dims[2] * self.max_length,
         )
         self.output_dims = (self.max_length, 1)
-        self.data_train = None
-        self.data_val = None
-        self.data_test = None
         self.transform = transforms.Compose([transforms.ToTensor()])
-        
+
     @staticmethod
     def add_to_argparse(parser):
         BaseDataModule.add_to_argparse(parser)
@@ -67,42 +69,44 @@ class EMNISTLines(BaseDataModule):
         )
         parser.add_argument("--with_start_end_tokens", action="store_true", default=False)
         return parser
-    
+
     @property
     def data_filename(self):
-        return (DATA_DIRNAME /                f"ml_{self.max_length}_o{self.min_overlap:f}_{self.max_overlap:f}_ntr{self.num_train}_ntv{self.num_val}_nte{self.num_test}_{self.with_start_end_tokens}.h5"
+        return (
+            DATA_DIRNAME
+            / f"ml_{self.max_length}_o{self.min_overlap:f}_{self.max_overlap:f}_ntr{self.num_train}_ntv{self.num_val}_nte{self.num_test}_{self.with_start_end_tokens}.h5"  # pylint: disable=line-too-long
         )
-    
-    def parge_data(self) -> None:
+
+    def prepare_data(self, *args, **kwargs) -> None:
         if self.data_filename.exists():
             return
         np.random.seed(42)
         self._generate_data("train")
         self._generate_data("val")
         self._generate_data("test")
-        
-    def setup(self, stage: str=None) -> None:
+
+    def setup(self, stage: str = None) -> None:
         print("EMNISTLinesDataset loading data from HDF5...")
         if stage == "fit" or stage is None:
-            with h5py.file(self.datafilename, "r") as f:
+            with h5py.File(self.data_filename, "r") as f:
                 x_train = f["x_train"][:]
                 y_train = f["y_train"][:].astype(int)
                 x_val = f["x_val"][:]
                 y_val = f["y_val"][:].astype(int)
-            
+
             self.data_train = BaseDataset(x_train, y_train, transform=self.transform)
             self.data_val = BaseDataset(x_val, y_val, transform=self.transform)
-            
+
         if stage == "test" or stage is None:
             with h5py.File(self.data_filename, "r") as f:
                 x_test = f["x_test"][:]
                 y_test = f["y_test"][:].astype(int)
             self.data_test = BaseDataset(x_test, y_test, transform=self.transform)
-    
+
     def __repr__(self) -> str:
         """Print info about the dataset."""
         basic = (
-            "EMNIST Lines Dataset\n"
+            "EMNIST Lines Dataset\n"  # pylint: disable=no-member
             f"Min overlap: {self.min_overlap}\n"
             f"Max overlap: {self.max_overlap}\n"
             f"Num classes: {len(self.mapping)}\n"
@@ -119,10 +123,13 @@ class EMNISTLines(BaseDataModule):
             f"Batch y stats: {(y.shape, y.dtype, y.min(), y.max())}\n"
         )
         return basic + data
-    
+
     def _generate_data(self, split: str) -> None:
         print(f"EMNISTLinesDataset generating data for {split}...")
+
+        # pylint: disable=import-outside-toplevel
         from text_recognizer.data.sentence_generator import SentenceGenerator
+
         sentence_generator = SentenceGenerator(self.max_length - 2)  # Subtract two because we will add start/end tokens
 
         emnist = self.emnist
@@ -153,11 +160,13 @@ class EMNISTLines(BaseDataModule):
             f.create_dataset(f"x_{split}", data=x, dtype="u1", compression="lzf")
             f.create_dataset(f"y_{split}", data=y, dtype="u1", compression="lzf")
 
+
 def get_samples_by_char(samples, labels, mapping):
     samples_by_char = defaultdict(list)
     for sample, label in zip(samples, labels):
         samples_by_char[mapping[label]].append(sample)
     return samples_by_char
+
 
 def select_letter_samples_for_string(string, samples_by_char):
     zero_image = torch.zeros((28, 28), dtype=torch.uint8)
@@ -170,12 +179,12 @@ def select_letter_samples_for_string(string, samples_by_char):
         sample_image_by_char[char] = sample.reshape(28, 28)
     return [sample_image_by_char[char] for char in string]
 
+
 def construct_image_from_string(
     string: str, samples_by_char: dict, min_overlap: float, max_overlap: float, width: int
 ) -> torch.Tensor:
     overlap = np.random.uniform(min_overlap, max_overlap)
     sampled_images = select_letter_samples_for_string(string, samples_by_char)
-    N = len(sampled_images)
     H, W = sampled_images[0].shape
     next_overlap_width = W - int(overlap * W)
     concatenated_image = torch.zeros((H, width), dtype=torch.uint8)
@@ -185,6 +194,7 @@ def construct_image_from_string(
         x += next_overlap_width
     return torch.minimum(torch.Tensor([255]), concatenated_image)
 
+
 def create_dataset_of_images(N, samples_by_char, sentence_generator, min_overlap, max_overlap, dims):
     images = torch.zeros((N, dims[1], dims[2]))
     labels = []
@@ -193,6 +203,7 @@ def create_dataset_of_images(N, samples_by_char, sentence_generator, min_overlap
         images[n] = construct_image_from_string(label, samples_by_char, min_overlap, max_overlap, dims[-1])
         labels.append(label)
     return images, labels
+
 
 def convert_strings_to_labels(
     strings: Sequence[str], mapping: Dict[str, int], length: int, with_start_end_tokens: bool
@@ -209,6 +220,7 @@ def convert_strings_to_labels(
         for ii, token in enumerate(tokens):
             labels[i, ii] = mapping[token]
     return labels
+
 
 if __name__ == "__main__":
     load_and_print_info(EMNISTLines)
