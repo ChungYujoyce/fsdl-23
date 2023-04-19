@@ -1,4 +1,8 @@
 import torch.nn as nn
+try:
+    import wandb
+except ModuleNotFoundError:
+    pass
 
 from .metrics import CharacterErrorRate
 from .base import BaseLitModel
@@ -36,6 +40,11 @@ class TransformerLitModel(BaseLitModel):
         self.log("val_loss", loss, prog_bar=True)
 
         pred = self.model.predict(x)
+        pred_str = "".join(self.mapping[_] for _ in pred[0].tolist() if _ != 3)
+        try:
+            self.logger.experiment.log({"val_pred_examples": [wandb.Image(x[0], caption=pred_str)]})
+        except AttributeError:
+            pass
         self.val_acc(pred, y)
         self.log("val_acc", self.val_acc, on_step=False, on_epoch=True)
         self.val_cer(pred, y)
@@ -44,6 +53,11 @@ class TransformerLitModel(BaseLitModel):
     def test_step(self, batch, batch_idx):  
         x, y = batch
         pred = self.model.predict(x)
+        pred_str = "".join(self.mapping[_] for _ in pred[0].tolist() if _ != 3)
+        try:
+            self.logger.experiment.log({"test_pred_examples": [wandb.Image(x[0], caption=pred_str)]})
+        except AttributeError:
+            pass
         self.test_acc(pred, y)
         self.log("test_acc", self.test_acc, on_step=False, on_epoch=True)
         self.test_cer(pred, y)
