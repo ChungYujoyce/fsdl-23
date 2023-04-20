@@ -21,7 +21,7 @@ class Accuracy(pl.metrics.Accuracy):
         #import pdb
         #pdb.set_trace()
         if preds.min() < 0 or preds.max() > 1:
-            preds = torch.nn.functional.softmax(preds.float(), dim=-1)
+            preds = torch.nn.functional.softmax(preds, dim=-1)
         super().update(preds=preds, target=target)
 
 class BaseLitModel(pl.LightningModule):
@@ -79,7 +79,7 @@ class BaseLitModel(pl.LightningModule):
         x, y = batch
         logits = self(x)
         loss = self.loss_fn(logits, y)
-        self.log("val_loss", loss, prog_bar=True)
+        self.log("val_loss", loss.float(), prog_bar=True)
         self.val_acc(logits, y)
         self.log("val_acc", self.val_acc, on_step = False, on_epoch = True, prog_bar = True)
 

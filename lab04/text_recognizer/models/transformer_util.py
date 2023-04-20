@@ -28,6 +28,7 @@ class PositionalEncoding(torch.nn.Module):
         x = x + self.pe[: x.size(0)]  # type: ignore
         return self.dropout(x)
 
+
 def generate_square_subsequent_mask(size: int) -> torch.Tensor:
     """Generate a triangular (size, size) mask."""
     mask = (torch.triu(torch.ones(size, size)) == 1).transpose(0, 1)
