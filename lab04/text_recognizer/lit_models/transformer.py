@@ -36,11 +36,17 @@ class TransformerLitModel(BaseLitModel):
         self.log("val_loss", loss, prog_bar=True)
 
         pred = self.model.predict(x)
+        self.val_acc(pred, y)
+        self.log("val_acc", self.val_acc, on_step=False, on_epoch=True)
         self.val_cer(pred, y)
         self.log("val_cer", self.val_cer, on_step=False, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):  
         x, y = batch
         pred = self.model.predict(x)
+        self.test_acc(pred, y)
+        self.log("test_acc", self.test_acc, on_step=False, on_epoch=True)
         self.test_cer(pred, y)
         self.log("test_cer", self.test_cer, on_step=False, on_epoch=True, prog_bar=True)
+        
+        

@@ -1,0 +1,5 @@
+[default]
+entity = joycecy-1010
+project = fsdl-23
+base_url = https://api.wandb.ai
+
