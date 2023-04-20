@@ -1,10 +1,14 @@
 # Python
 __pycache__
 .ipynb_checkpoints
+.pytest_cache
 
 # Data
 data/downloaded
+data/processed
 
 #Misc
 logs
 .DS_Store
+
+wandb

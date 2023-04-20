@@ -204,7 +204,6 @@ def create_dataset_of_images(N, samples_by_char, sentence_generator, min_overlap
         labels.append(label)
     return images, labels
 
-
 def convert_strings_to_labels(
     strings: Sequence[str], mapping: Dict[str, int], length: int, with_start_end_tokens: bool
 ) -> np.ndarray:
@@ -220,7 +219,6 @@ def convert_strings_to_labels(
         for ii, token in enumerate(tokens):
             labels[i, ii] = mapping[token]
     return labels
-
 
 if __name__ == "__main__":
     load_and_print_info(EMNISTLines)

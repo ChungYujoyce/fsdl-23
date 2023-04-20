@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import torch
 import pytorch_lightning as pl
+import wandb
+wandb.init(project="fsdl-23")
 
 from text_recognizer import lit_models
 
@@ -26,6 +28,7 @@ def _setup_parser():
     parser.add_argument("--data_class", type=str, default="MNIST")
     parser.add_argument("--model_class", type=str, default="MLP")
     parser.add_argument("--load_checkpoint", type=str, default=None)
+    parser.add_argument("--wandb", action="store_true", default=False)
 
     temp_args, _ = parser.parse_known_args()
     data_class = _import_class(f"text_recognizer.data.{temp_args.data_class}")
@@ -47,6 +50,7 @@ def _setup_parser():
 def main():
     parser = _setup_parser()
     args = parser.parse_args()
+    print(args)
     data_class = _import_class(f"text_recognizer.data.{args.data_class}")
     model_class = _import_class(f"text_recognizer.models.{args.model_class}")
     data = data_class(args)
@@ -66,6 +70,11 @@ def main():
 
     logger = pl.loggers.TensorBoardLogger("training/logs")
     
+    if args.wandb:
+        logger = pl.loggers.WandbLogger()
+        logger.watch(model)
+        logger.log_hyperparams(vars(args))
+    
     early_stopping_callback = pl.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=10)
     model_checkpoint_callback = pl.callbacks.ModelCheckpoint(
         filename="{epoch:03d}-{val_loss:.3f}-{val_cer:.3f}", monitor="val_loss", mode="min"
@@ -78,6 +87,13 @@ def main():
     trainer.tune(lit_model, datamodule=data)  # If passing --auto_lr_find, this will set learning rate
     trainer.fit(lit_model, datamodule=data)
     trainer.test(lit_model, datamodule=data)
+    
+    best_model_path = model_checkpoint_callback.best_model_path
+    if best_model_path:
+        print("Best model saved at:", best_model_path)
+        if args.wandb:
+            wandb.save(best_model_path)
+            print("Best model also uploaded to W&B")
 
 if __name__ == "__main__":
     main()
