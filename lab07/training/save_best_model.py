@@ -80,7 +80,7 @@ def _copy_local_model_checkpoint(run_id: str, project: str, output_dirname: Path
     checkpoint_filenames = list((TRAINING_LOGS_DIRNAME / project / run_id).glob("**/*.ckpt"))
     if not checkpoint_filenames:
         return None
-    shutil.copyfile(src=checkpoint_filenames[0], dst=output_dirname / "model.pt")
+    shutil.copyfile(src=checkpoint_filenames[0], dst=output_dirname / "model.ckpt")
     print(f"Model checkpoint found on system at {checkpoint_filenames[0]}")
     return checkpoint_filenames[0]
 
@@ -95,9 +95,9 @@ def _download_model_checkpoint(wandb_run: wandb.apis.public.Run, output_dirname:
     with tempfile.TemporaryDirectory() as tmp_dirname:
         wandb_file.download(root=tmp_dirname, replace=True)
         checkpoint_filename = f"{tmp_dirname}/{wandb_file.name}"
-        shutil.copyfile(src=checkpoint_filename, dst=output_dirname / "model.pt")
+        shutil.copyfile(src=checkpoint_filename, dst=output_dirname / "model.ckpt")
         print("Model checkpoint downloaded from wandb")
-    return output_dirname / "model.pt"
+    return output_dirname / "model.ckpt"
 
 
 def _get_run_command(wandb_run: wandb.apis.public.Run) -> str:
