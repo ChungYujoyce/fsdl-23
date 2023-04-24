@@ -32,7 +32,7 @@ class ParagraphTextRecognizer:
 
         model = ResnetTransformer(data_config=data.config(), args=args)
         self.lit_model = TransformerLitModel.load_from_checkpoint(
-            checkpoint_path=CONFIG_AND_WEIGHTS_DIRNAME / "model.pt", args=args, model=model
+            checkpoint_path=CONFIG_AND_WEIGHTS_DIRNAME / "model.ckpt", args=args, model=model
         )
         self.lit_model.eval()
         self.scripted_model = self.lit_model.to_torchscript(method="script", file_path=None)
@@ -61,8 +61,7 @@ def main():
     """
     Example runs:
     ```
-    python text_recognizer/paragraph_text_recognizer.py text_recognizer/tests/support/paragraphs/a01-077.png
-    python text_recognizer/paragraph_text_recognizer.py https://fsdl-public-assets.s3-us-west-2.amazonaws.com/paragraphs/a01-077.png
+    python text_recognizer/paragraph_text_recognizer.py text_recognizer/tests/support/a01-077.png
     """
     parser = argparse.ArgumentParser(description="Recognize handwritten text in an image file.")
     parser.add_argument("filename", type=str)

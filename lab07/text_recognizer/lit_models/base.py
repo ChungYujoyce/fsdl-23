@@ -18,8 +18,6 @@ class Accuracy(pl.metrics.Accuracy):
         This method just hacks around it by normalizing preds before passing it in.
         Normalized preds are not necessary for accuracy computation as we just care about argmax().
         """
-        #import pdb
-        #pdb.set_trace()
         if preds.min() < 0 or preds.max() > 1:
             preds = torch.nn.functional.softmax(preds.float(), dim=-1)
         super().update(preds=preds, target=target)
@@ -47,9 +45,9 @@ class BaseLitModel(pl.LightningModule):
 
     @staticmethod
     def add_to_argparse(parser):
-        parser.add_argument("--optimizer", type = str, default = OPTIMIZER, help = "optimizer class from torch.optim")
-        parser.add_argument("--lr", type = float, default = LR)
-        parser.add_argument("--loss", type = str, default = LOSS, help = "loss function from torch.nn.functional")
+        parser.add_argument("--optimizer", type=str, default=OPTIMIZER, help="optimizer class from torch.optim")
+        parser.add_argument("--lr", type=float, default=LR)
+        parser.add_argument("--loss", type=str, default=LOSS, help="loss function from torch.nn.functional")
         parser.add_argument("--one_cycle_max_lr", type=float, default=None)
         parser.add_argument("--one_cycle_total_steps", type=int, default=ONE_CYCLE_TOTAL_STEPS)
         return parser
@@ -72,7 +70,7 @@ class BaseLitModel(pl.LightningModule):
         loss = self.loss_fn(logits, y)
         self.log("train_loss", loss)
         self.train_acc(logits, y)
-        self.log("train_acc", self.train_acc, on_step = False, on_epoch = True)
+        self.log("train_acc", self.train_acc, on_step=False, on_epoch=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -81,8 +79,8 @@ class BaseLitModel(pl.LightningModule):
         loss = self.loss_fn(logits, y)
         self.log("val_loss", loss, prog_bar=True)
         self.val_acc(logits, y)
-        self.log("val_acc", self.val_acc, on_step = False, on_epoch = True, prog_bar = True)
-
+        self.log("val_acc", self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
+        
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
