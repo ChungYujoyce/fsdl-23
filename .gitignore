@@ -9,9 +9,11 @@ data/processed
 
 # Model
 *.pt
+*.ckpt
 
 #Misc
 logs
+lightning_logs/
 .DS_Store
 
 wandb
