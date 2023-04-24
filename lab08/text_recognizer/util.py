@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Union
 from urllib.request import urlretrieve
 import hashlib
+import base64
 
 from PIL import Image
 from tqdm import tqdm
@@ -50,3 +51,13 @@ class TqdmUpTo(tqdm):
 def download_url(url, filename):
     with TqdmUpTo(unit="B", unit_scale=True, unit_divisor=1024, miniters=1) as t:
         urlretrieve(url, filename, reporthook=t.update_to, data=None)  # nosec
+
+        
+def read_b64_image(b64_string, grayscale=False):  # lab08
+    """Load base64-encoded images."""
+    try:
+        _, b64_data = b64_string.split(",") 
+        image_file = BytesIO(base64.b64decode(b64_data))
+        return read_image_pil_file(image_file, grayscale)
+    except Exception as exception:
+        raise ValueError("Could not load image from b64 {}: {}".format(b64_string, exception)) from exception
