@@ -29,14 +29,14 @@ class TransformerLitModel(BaseLitModel):
     def training_step(self, batch, batch_idx): 
         x, y = batch
         logits = self.model(x, y[:, :-1])
-        loss = self.loss_fn(logits, y[:, 1:])
+        loss = self.loss_fn(logits, y[:, 1:].long())
         self.log("train_loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx): 
         x, y = batch
         logits = self.model(x, y[:, :-1])
-        loss = self.loss_fn(logits, y[:, 1:])
+        loss = self.loss_fn(logits, y[:, 1:].long())
         self.log("val_loss", loss, prog_bar=True)
 
         pred = self.model.predict(x)

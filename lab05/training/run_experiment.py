@@ -50,7 +50,6 @@ def _setup_parser():
 def main():
     parser = _setup_parser()
     args = parser.parse_args()
-    print(args)
     data_class = _import_class(f"text_recognizer.data.{args.data_class}")
     model_class = _import_class(f"text_recognizer.models.{args.model_class}")
     data = data_class(args)
